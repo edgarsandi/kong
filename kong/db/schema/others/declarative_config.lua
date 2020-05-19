@@ -449,6 +449,8 @@ local function get_key_for_uuid_gen(entity, item, schema, parent_fk, child_key)
   if schema.cache_key then
     return pk_name, build_cache_key(entity, item, schema, parent_fk, child_key)
   end
+
+  return pk_name
 end
 
 
@@ -509,8 +511,12 @@ local function populate_ids(input, known_entities, parent_entity, by_id, by_key)
     for _, item in ipairs(input[entity]) do
       local pk_name, key = get_key_for_uuid_gen(entity, item, schema,
                                                 parent_fk, child_key)
-      if key and not item[pk_name] then
-        item[pk_name] = generate_uuid(schema.name, key)
+      if pk_name and not item[pk_name] then
+        if key then
+          item[pk_name] = generate_uuid(schema.name, key)
+        else
+          item[pk_name] = generate_uuid(schema.name, string.sub(tostring(item), 10))
+        end
       end
 
       populate_ids(item, known_entities, entity, by_id, by_key)
